@@ -1,0 +1,77 @@
+services:
+  teslamateapi:
+    image: tobiasehlert/teslamateapi:1.20.2
+    restart: always
+    pull_policy: always
+    depends_on:
+      - database
+    env_file:
+      - .env.teslamateapi
+    networks:
+      - teslamate-net
+  teslamate:
+    image: teslamate/teslamate:2.0.0
+    restart: always
+    env_file:
+      - .env.teslamate
+    ports:
+      - 4000:4000
+    volumes:
+      - teslamate-data:/opt/app/import
+    cap_drop:
+      - all
+    networks:
+      - teslamate-net
+  database:
+    image: postgres:17
+    restart: always
+    env_file:
+      - .env.postgres
+    volumes:
+      - teslamate-db:/var/lib/postgresql/data
+    networks:
+      - teslamate-net
+  grafana:
+    image: teslamate/grafana:2.0
+    restart: always
+    env_file:
+      - .env.grafana
+    ports:
+      - 3000:3000
+    volumes:
+      - teslamate-grafana-data:/var/lib/grafana
+    networks:
+      - teslamate-net
+  mosquitto:
+    image: eclipse-mosquitto:2
+    restart: always
+    command: mosquitto -c /mosquitto-no-auth.conf
+    # ports:
+    #   - 1883:1883
+    volumes:
+      - mosquitto-conf:/mosquitto/config
+      - mosquitto-data:/mosquitto/data
+    networks:
+      - teslamate-net
+  nginx:
+    build: .
+    restart: always
+    depends_on:
+      - teslamateapi
+    ports:
+      - 8443:8443
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    env_file:
+      - .env.nginx
+    networks:
+      - teslamate-net
+volumes:
+  teslamate-db:
+  teslamate-grafana-data:
+  mosquitto-conf:
+  mosquitto-data:
+  teslamate-data:
+networks:
+  teslamate-net:
+    driver: bridge
