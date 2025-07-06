@@ -48,8 +48,6 @@ services:
     image: eclipse-mosquitto:2
     restart: always
     command: mosquitto -c /mosquitto-no-auth.conf
-    # ports:
-    #   - 1883:1883
     volumes:
       - mosquitto-conf:/mosquitto/config
       - mosquitto-data:/mosquitto/data
