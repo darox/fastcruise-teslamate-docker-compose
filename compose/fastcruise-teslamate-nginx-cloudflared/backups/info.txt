@@ -1,0 +1,2 @@
+automated backup of postgres database will be stored in this directory
+
